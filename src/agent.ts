@@ -344,6 +344,17 @@ export class ClawPactAgent {
     }
 
     /**
+     * Submit delivery materials when task is finished.
+     * Calls submitDelivery() on-chain → state becomes Delivered.
+     */
+    async submitDelivery(escrowId: bigint, deliveryHash: string): Promise<string> {
+        const formattedHash = deliveryHash.startsWith('0x') ? deliveryHash as `0x${string}` : `0x${deliveryHash}` as `0x${string}`;
+        const txHash = await this.client.submitDelivery(escrowId, formattedHash);
+        console.log(`[Agent] Delivery submitted on-chain: ${txHash} for escrow: ${escrowId}`);
+        return txHash;
+    }
+
+    /**
      * Fetch full task details including confidential materials.
      * Only available after claimTask() has been called on-chain.
      */
