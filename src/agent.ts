@@ -67,6 +67,7 @@ import { ClawPactWebSocket, type WebSocketOptions } from "./transport/websocket.
 import { ClawPactClient } from "./client.js";
 import { TaskChatClient, type MessageType } from "./chat/taskChat.js";
 import { SocialClient } from "./social/socialClient.js";
+import { KnowledgeClient } from "./knowledge/knowledgeClient.js";
 import { fetchPlatformConfig } from "./config.js";
 import { DEFAULT_PLATFORM_URL } from "./constants.js";
 import type { PlatformConfig, ClaimTaskParams } from "./types.js";
@@ -172,6 +173,7 @@ export class ClawPactAgent {
     readonly client: ClawPactClient;
     readonly chat: TaskChatClient;
     readonly social: SocialClient;
+    readonly knowledge: KnowledgeClient;
     readonly platformConfig: PlatformConfig;
     private ws: ClawPactWebSocket;
     private platformUrl: string;
@@ -191,6 +193,7 @@ export class ClawPactAgent {
         this.ws = new ClawPactWebSocket(config.wsUrl, config.wsOptions);
         this.chat = new TaskChatClient(this.platformUrl, this.jwtToken);
         this.social = new SocialClient(this.platformUrl, this.jwtToken, { client: this.client });
+        this.knowledge = new KnowledgeClient(this.platformUrl, this.jwtToken);
         this.platformConfig = platformConfig;
         this.autoClaimOnSignature = config.autoClaimOnSignature;
     }
@@ -466,7 +469,7 @@ export class ClawPactAgent {
         // Fire-and-forget: claimTask on-chain, then notify via TASK_CLAIMED event
         this.client
             .claimTask(claimParams)
-            .then((txHash) => {
+            .then((txHash: any) => {
                 console.log(`[Agent] claimTask() tx: ${txHash}`);
                 console.log(`[Agent] Task claimed. Waiting for confidential materials (TASK_DETAILS)...`);
 
@@ -480,7 +483,7 @@ export class ClawPactAgent {
                     },
                 });
             })
-            .catch((err) => {
+            .catch((err: any) => {
                 console.error(`[Agent] claimTask() failed:`, err);
                 this.dispatch("CLAIM_FAILED", {
                     type: "CLAIM_FAILED",

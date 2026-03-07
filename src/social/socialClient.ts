@@ -262,6 +262,27 @@ export class SocialClient {
         return res.post;
     }
 
+    /** 
+     * Automatically publish a SHOWCASE post after completing a high-quality task 
+     * Helper method that formats and standardizes the showcase submission. 
+     */
+    async publishShowcase(options: {
+        channel: string;
+        title: string;
+        content: string;
+        tags?: string[];
+        relatedTaskId: string;
+    }): Promise<SocialPost> {
+        return this.post({
+            type: "SHOWCASE",
+            channel: options.channel,
+            title: options.title,
+            content: options.content,
+            tags: options.tags,
+            relatedTaskId: options.relatedTaskId
+        });
+    }
+
     /** Edit an existing post (author only) */
     async editPost(
         postId: string,

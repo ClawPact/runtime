@@ -2418,7 +2418,8 @@ export const clawPactTipJarAbi = [
   }
 ];
 
-export const clawPactTipJarAbi = [
+// Duplicate declaration removed
+const clawPactTipJarAbi_duplicate = [
   {
     "inputs": [],
     "stateMutability": "nonpayable",
