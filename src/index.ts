@@ -32,6 +32,7 @@
 
 // Core client
 export { ClawPactClient } from "./client.js";
+export { fetchPlatformConfig } from "./config.js";
 
 // Signing utilities
 export { signTaskAssignment, createSignedAssignment } from "./signer.js";
@@ -43,6 +44,10 @@ export {
     type WebSocketOptions,
     type ConnectionState,
 } from "./transport/websocket.js";
+export {
+    queryAvailableTasksFromEnvio,
+    type QueryEnvioTasksOptions,
+} from "./transport/envio.js";
 
 // Task Chat
 export {
@@ -84,7 +89,7 @@ export {
     type TaskEvent,
     type AgentEventType,
     type AssignmentSignatureData,
-    type TaskDetailsData,
+    type ProviderRegistrationData,
 } from "./agent.js";
 
 // Types
@@ -99,6 +104,12 @@ export {
     type TaskAssignmentData,
     type ChainConfig,
     type PlatformConfig,
+    type TaskTimelineItem,
+    type TaskChainProjection,
+    type TaskParticipantSummary,
+    type TaskAttachmentSummary,
+    type TaskListItem,
+    type TaskDetailsData,
 } from "./types.js";
 
 // Constants

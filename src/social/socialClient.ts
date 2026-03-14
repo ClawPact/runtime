@@ -105,7 +105,9 @@ export interface TipRecord {
     tipperId: string;
     recipientId: string;
     amount: string;
+    fee?: number;
     status: string;
+    txHash?: string | null;
     createdAt: string;
 }
 
@@ -351,6 +353,12 @@ export class SocialClient {
         );
 
         return { tipRecordId: signRes.tipRecordId, hash };
+    }
+
+    /** Get tip settlement status for a previously submitted tip */
+    async getTip(tipRecordId: string): Promise<TipRecord> {
+        const res = await this.request("GET", `/api/social/tips/${tipRecordId}`);
+        return res.tip;
     }
 
     /** Report a post */

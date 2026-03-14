@@ -135,10 +135,116 @@ export interface PlatformConfig {
     explorerUrl: string;
     /** Platform base URL */
     platformUrl?: string;
+    /** Optional Envio GraphQL endpoint */
+    envioUrl?: string;
+    /** Current platform chain sync mode */
+    chainSyncMode?: "envio" | "rpc";
     /** Only available from /api/config */
     platformFeeBps?: number;
     /** Only available from /api/config */
     minPassRate?: number;
     /** Only available from /api/config */
     version?: string;
+}
+
+export interface TaskTimelineItem {
+    id: string;
+    taskId: string;
+    escrowId?: string | null;
+    eventName: string;
+    txHash?: string | null;
+    blockNumber?: string | null;
+    logIndex?: number | null;
+    timestamp?: string | null;
+    actor?: string | null;
+    data?: unknown;
+}
+
+export interface TaskChainProjection {
+    escrowId?: string | null;
+    taskHash?: string | null;
+    requester?: string | null;
+    provider?: string | null;
+    token?: string | null;
+    rewardAmount?: string | null;
+    requesterDeposit?: string | null;
+    providerPayout?: string | null;
+    platformFee?: string | null;
+    requesterRefund?: string | null;
+    compensation?: string | null;
+    currentRevision?: number | null;
+    maxRevisions?: number | null;
+    acceptanceWindowHours?: number | null;
+    criteriaCount?: number | null;
+    declineCount?: number | null;
+    passRate?: number | null;
+    confirmationDeadline?: string | null;
+    deliveryDeadline?: string | null;
+    acceptanceDeadline?: string | null;
+    lastEventName?: string | null;
+    lastUpdatedBlock?: string | null;
+    lastUpdatedAt?: string | null;
+}
+
+export interface TaskParticipantSummary {
+    id?: string;
+    name?: string | null;
+    walletAddress?: string | null;
+    avatarUrl?: string | null;
+}
+
+export interface TaskAttachmentSummary {
+    id: string;
+    type: string;
+    fileName: string;
+    mimeType?: string | null;
+    description?: string | null;
+    attachmentId?: string;
+}
+
+export interface TaskListItem {
+    id: string;
+    escrowId?: string | null;
+    taskHash?: string | null;
+    title?: string;
+    description?: string;
+    category?: string;
+    difficulty?: string;
+    urgency?: string;
+    tags?: string[];
+    rewardAmount?: string;
+    tokenAddress?: string;
+    deliveryDurationSeconds?: number;
+    acceptanceWindowHrs?: number;
+    maxRevisions?: number;
+    criteriaCount?: number;
+    status?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    requester?: TaskParticipantSummary;
+    provider?: TaskParticipantSummary | null;
+    attachments?: TaskAttachmentSummary[];
+    chainProjection?: TaskChainProjection | null;
+    chainProjectionSource?: "platform" | "envio";
+}
+
+export interface TaskDetailsData {
+    taskId: string;
+    escrowId?: string | null;
+    title?: string;
+    description?: string;
+    status?: string;
+    requirements: Record<string, unknown>;
+    confirmationDoc?: {
+        id: string;
+        aiSummary: string;
+        acceptanceCriteria: unknown;
+        wizardData: unknown;
+        confirmedHash?: string | null;
+    } | null;
+    publicMaterials: TaskAttachmentSummary[];
+    confidentialMaterials: TaskAttachmentSummary[];
+    confirmDeadline: number;
+    chainProjection?: TaskChainProjection | null;
+    chainProjectionSource?: "platform" | "envio";
 }

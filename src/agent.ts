@@ -68,6 +68,8 @@ import { ClawPactClient } from "./client.js";
 import { TaskChatClient, type MessageType } from "./chat/taskChat.js";
 import { SocialClient } from "./social/socialClient.js";
 import { KnowledgeClient } from "./knowledge/knowledgeClient.js";
+import { fetchPlatformConfig } from "./config.js";
+import { queryAvailableTasksFromEnvio } from "./transport/envio.js";
 import {
     DEFAULT_PLATFORM_URL,
     DEFAULT_RPC_URL,
@@ -77,7 +79,13 @@ import {
     TIPJAR_ADDRESS,
     EXPLORER_URL,
 } from "./constants.js";
-import type { PlatformConfig, ClaimTaskParams } from "./types.js";
+import type {
+    PlatformConfig,
+    ClaimTaskParams,
+    TaskTimelineItem,
+    TaskDetailsData,
+    TaskListItem,
+} from "./types.js";
 
 // ──── Configuration Types ────────────────────────────────────────
 
@@ -89,6 +97,8 @@ export interface AgentCreateOptions {
     platformUrl?: string;
     /** Override RPC URL (default: from /api/config) */
     rpcUrl?: string;
+    /** Optional Envio GraphQL URL override */
+    envioUrl?: string;
     /** JWT token (if already authenticated) */
     jwtToken?: string;
     /** WebSocket connection options */
@@ -126,18 +136,11 @@ export interface AssignmentSignatureData {
     taskId: string;
 }
 
-/** Task details data (confidential materials, received after claimTask) */
-export interface TaskDetailsData {
-    taskId: string;
-    escrowId: bigint;
-    /** Full requirements including confidential materials */
-    requirements: Record<string, unknown>;
-    /** Public materials (already seen during bidding) */
-    publicMaterials: Record<string, unknown>[];
-    /** Confidential materials (only visible after claimTask) */
-    confidentialMaterials: Record<string, unknown>[];
-    /** Confirmation deadline (2h window) */
-    confirmDeadline: number;
+export interface ProviderRegistrationData {
+    id: string;
+    userId: string;
+    agentType: string;
+    capabilities: string[];
 }
 
 /**
@@ -214,14 +217,17 @@ export class ClawPactAgent {
      */
     static async create(options: AgentCreateOptions): Promise<ClawPactAgent> {
         const baseUrl = options.platformUrl ?? DEFAULT_PLATFORM_URL;
+        const discoveredConfig = await fetchPlatformConfig(baseUrl).catch(() => null);
 
-        // Step 1: Resolve RPC URL (user override > hardcoded default)
-        const rpcUrl = options.rpcUrl ?? DEFAULT_RPC_URL;
+        // Step 1: Resolve RPC URL (user override > platform config > hardcoded default)
+        const rpcUrl = options.rpcUrl ?? discoveredConfig?.rpcUrl ?? DEFAULT_RPC_URL;
 
-        // Step 2: Resolve WebSocket URL (derive from platform URL)
-        const wsUrl = baseUrl.startsWith("http://")
-            ? baseUrl.replace("http://", "ws://") + "/ws"
-            : baseUrl.replace("https://", "wss://") + "/ws";
+        // Step 2: Resolve WebSocket URL (platform config > derived URL)
+        const wsUrl =
+            discoveredConfig?.wsUrl ??
+            (baseUrl.startsWith("http://")
+                ? baseUrl.replace("http://", "ws://") + "/ws"
+                : baseUrl.replace("https://", "wss://") + "/ws");
 
         // Step 3: Create viem clients
         const pk = options.privateKey.startsWith("0x")
@@ -258,7 +264,7 @@ export class ClawPactAgent {
             walletClient as WalletClient<Transport, Chain, Account>
         );
 
-        // Step 5: Build platform config object (from hardcoded values)
+        // Step 5: Build platform config object (critical addresses remain hardcoded)
         const platformConfig: PlatformConfig = {
             chainId: CHAIN_ID,
             escrowAddress: ESCROW_ADDRESS,
@@ -268,6 +274,11 @@ export class ClawPactAgent {
             wsUrl,
             explorerUrl: EXPLORER_URL,
             platformUrl: baseUrl,
+            envioUrl: options.envioUrl ?? discoveredConfig?.envioUrl,
+            chainSyncMode: discoveredConfig?.chainSyncMode,
+            platformFeeBps: discoveredConfig?.platformFeeBps,
+            minPassRate: discoveredConfig?.minPassRate,
+            version: discoveredConfig?.version,
         };
 
         // Step 6: Authenticate (auto SIWE login if no JWT provided)
@@ -532,8 +543,23 @@ export class ClawPactAgent {
             { headers: this.headers() }
         );
         if (!res.ok) throw new Error(`Failed to fetch revision details: ${res.status}`);
-        const body = (await res.json()) as { data: unknown };
-        return body.data;
+        const body = (await res.json()) as { data?: unknown; revisions?: unknown[] };
+        return body.data ?? body.revisions ?? body;
+    }
+
+    /**
+     * Fetch task timeline.
+     * Platform will prefer Envio projections and fall back to local task logs when needed.
+     */
+    async getTaskTimeline(taskId: string): Promise<TaskTimelineItem[]> {
+        const res = await fetch(
+            `${this.platformUrl}/api/tasks/${taskId}/timeline`,
+            { headers: this.headers() }
+        );
+
+        if (!res.ok) throw new Error(`Failed to fetch task timeline: ${res.status}`);
+        const body = (await res.json()) as { data?: TaskTimelineItem[] };
+        return body.data ?? [];
     }
 
     /**
@@ -547,8 +573,42 @@ export class ClawPactAgent {
         );
 
         if (!res.ok) throw new Error(`Failed to fetch task details: ${res.status}`);
-        const body = (await res.json()) as { data: TaskDetailsData };
-        return body.data;
+        const body = (await res.json()) as { data?: TaskDetailsData };
+        return (body.data ?? body) as TaskDetailsData;
+    }
+
+    async registerProvider(
+        agentType: string = "openclaw-agent",
+        capabilities: string[] = ["general"]
+    ): Promise<ProviderRegistrationData> {
+        const res = await fetch(`${this.platformUrl}/api/providers`, {
+            method: "POST",
+            headers: this.headers(),
+            body: JSON.stringify({ agentType, capabilities }),
+        });
+
+        if (!res.ok) throw new Error(`Failed to register provider: ${res.status}`);
+        const body = (await res.json()) as { profile?: ProviderRegistrationData; data?: ProviderRegistrationData };
+        return (body.profile ?? body.data)!;
+    }
+
+    async ensureProviderProfile(
+        agentType: string = "openclaw-agent",
+        capabilities: string[] = ["general"]
+    ): Promise<ProviderRegistrationData | null> {
+        const meRes = await fetch(`${this.platformUrl}/api/auth/me`, {
+            headers: this.headers(),
+        });
+        if (!meRes.ok) {
+            throw new Error(`Failed to fetch current profile: ${meRes.status}`);
+        }
+
+        const meBody = (await meRes.json()) as { user?: { providerProfile?: ProviderRegistrationData | null } };
+        if (meBody.user?.providerProfile) {
+            return meBody.user.providerProfile;
+        }
+
+        return this.registerProvider(agentType, capabilities);
     }
 
     // ──── Convenience Methods ────────────────────────────────────────
@@ -557,20 +617,32 @@ export class ClawPactAgent {
         limit?: number;
         offset?: number;
         status?: string;
-    } = {}): Promise<unknown[]> {
+    } = {}): Promise<TaskListItem[]> {
         const params = new URLSearchParams();
         params.set("limit", String(options.limit ?? 20));
         params.set("offset", String(options.offset ?? 0));
         if (options.status) params.set("status", options.status);
 
-        const res = await fetch(
-            `${this.platformUrl}/api/tasks?${params}`,
-            { headers: this.headers() }
-        );
+        const fetchFromPlatform = async () => {
+            const res = await fetch(
+                `${this.platformUrl}/api/tasks?${params}`,
+                { headers: this.headers() }
+            );
 
-        if (!res.ok) throw new Error(`Failed to fetch tasks: ${res.status}`);
-        const body = (await res.json()) as { data?: unknown[] };
-        return body.data || [];
+            if (!res.ok) throw new Error(`Failed to fetch tasks: ${res.status}`);
+            const body = (await res.json()) as { data?: TaskListItem[]; tasks?: TaskListItem[] };
+            return body.data || body.tasks || [];
+        };
+
+        try {
+            return await fetchFromPlatform();
+        } catch (platformError) {
+            if (!this.platformConfig.envioUrl) {
+                throw platformError;
+            }
+
+            return queryAvailableTasksFromEnvio(this.platformConfig, options);
+        }
     }
 
     async bidOnTask(taskId: string, message?: string): Promise<unknown> {
@@ -584,7 +656,8 @@ export class ClawPactAgent {
         );
 
         if (!res.ok) throw new Error(`Failed to bid: ${res.status}`);
-        return ((await res.json()) as { data: unknown }).data;
+        const body = (await res.json()) as { data?: unknown; task?: unknown };
+        return body.data ?? body.task ?? body;
     }
 
     async sendMessage(
