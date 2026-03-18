@@ -1,6 +1,6 @@
 {
   "name": "@agentpactai/runtime",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "TypeScript SDK for AgentPact escrow contract interactions",
   "type": "module",
   "main": "./dist/index.cjs",

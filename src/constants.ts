@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @agentpactai/runtime - Chain & contract constants
  *
  * SECURITY: Critical contract addresses are hardcoded here to prevent
@@ -8,18 +8,17 @@
  * Dynamic parameters (rpcUrl) can be overridden by the user.
  */
 
-/** Zero address constant — used for ETH payment mode */
+/** Zero address constant 闁?used for ETH payment mode */
 export const ETH_TOKEN = "0x0000000000000000000000000000000000000000" as const;
 
-// ─── Network Configuration ───────────────────────────────────────
-
+// 闁冲厜鍋撻柍鍏夊亾闁冲厜鍋?Network Configuration 闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋?
 /** Base Sepolia (testnet) chain ID */
 export const CHAIN_ID_BASE_SEPOLIA = 84532 as const;
 
 /** Base Mainnet chain ID */
 export const CHAIN_ID_BASE_MAINNET = 8453 as const;
 
-/** Active chain ID — change this when migrating to mainnet */
+/** Active chain ID 闁?change this when migrating to mainnet */
 export const CHAIN_ID = CHAIN_ID_BASE_SEPOLIA;
 
 /** Default RPC URL for the active chain */
@@ -31,29 +30,28 @@ export const DEFAULT_BASE_MAINNET_RPC_URL = "https://mainnet.base.org" as const;
 /** Block explorer URL */
 export const EXPLORER_URL = "https://sepolia.basescan.org" as const;
 
-// ─── Contract Addresses (UUPS Proxy — immutable) ─────────────────
-
+// Contract Addresses (UUPS Proxy immutable) 
 /**
  * AgentPactEscrow proxy address (Base Sepolia).
- * SECURITY: This is a UUPS proxy — the address never changes, only the
+ * SECURITY: This is a UUPS proxy the address never changes, only the
  * implementation behind it can be upgraded by the contract owner.
  */
-export const ESCROW_ADDRESS = "0xB8C77709fF82D7F90CA1695a7495d0A33D2d19a5" as `0x${string}`;
+export const ESCROW_ADDRESS = "0x6963a32B180EcBE2efC3605aB3Fd17402916fee7" as `0x${string}`;
 
 /**
  * USDC token address on Base Sepolia.
  * This is the official Circle-deployed USDC on the testnet.
  */
-export const USDC_ADDRESS = "0x036CbD53842c5426634e7929541eC2318f3dCF7e" as `0x${string}`;
+export const USDC_ADDRESS = "0x6C5816531C18aD328ffAc27B1E58EEB67528E429" as `0x${string}`;
 
 /**
  * TipJar proxy address (Base Sepolia).
  * Used for the Agent Tavern tipping feature.
  * TODO: Update with deployed address after TipJar contract deployment.
  */
-export const TIPJAR_ADDRESS = "0x0000000000000000000000000000000000000000" as `0x${string}`;
+export const TIPJAR_ADDRESS = "0x43f018Ea7b822b9A3d748A438E530729F1791dcC" as `0x${string}`;
 
-// ─── Platform Configuration ──────────────────────────────────────
+// Platform Configuration 
 
 /** Default AgentPact platform API URL */
 export const DEFAULT_PLATFORM_URL = "https://api.agentpact.io";
@@ -68,7 +66,7 @@ export const KNOWN_PLATFORMS = {
     local: "http://localhost:4000",
 } as const;
 
-// ─── Protocol Constants ──────────────────────────────────────────
+// Protocol Constants 
 
 /** Platform fee rate (3%, matches contract PLATFORM_FEE_BPS=300) */
 export const PLATFORM_FEE_BPS = 300n;
@@ -97,3 +95,5 @@ export const TASK_ASSIGNMENT_TYPES = {
         { name: "expiredAt", type: "uint256" },
     ],
 } as const;
+
+
