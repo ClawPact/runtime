@@ -8,17 +8,16 @@
  * Dynamic parameters (rpcUrl) can be overridden by the user.
  */
 
-/** Zero address constant 闁?used for ETH payment mode */
+/** Zero address constant used for ETH payment mode */
 export const ETH_TOKEN = "0x0000000000000000000000000000000000000000" as const;
 
-// 闁冲厜鍋撻柍鍏夊亾闁冲厜鍋?Network Configuration 闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋?
 /** Base Sepolia (testnet) chain ID */
 export const CHAIN_ID_BASE_SEPOLIA = 84532 as const;
 
 /** Base Mainnet chain ID */
 export const CHAIN_ID_BASE_MAINNET = 8453 as const;
 
-/** Active chain ID 闁?change this when migrating to mainnet */
+/** Active chain ID; change this when migrating to mainnet */
 export const CHAIN_ID = CHAIN_ID_BASE_SEPOLIA;
 
 /** Default RPC URL for the active chain */
@@ -95,5 +94,4 @@ export const TASK_ASSIGNMENT_TYPES = {
         { name: "expiredAt", type: "uint256" },
     ],
 } as const;
-
 
